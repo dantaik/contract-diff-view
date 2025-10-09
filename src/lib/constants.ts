@@ -14,6 +14,8 @@ export const NON_RETRYABLE_ERRORS = [
   'Contract source code not verified',
   'Missing chainid parameter',
   'You are using a deprecated',
+  'Invalid API Key',
+  'Missing Or invalid API Key',
 ] as const;
 
 // Supported chains

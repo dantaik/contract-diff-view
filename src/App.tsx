@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getContractSource, getProxyImplementation, setChainId, type ContractSource } from './lib/etherscan';
+import { getContractSource, getProxyImplementation, setChainId, setApiKey, type ContractSource } from './lib/etherscan';
 import { createFileDiffs, type FileDiff } from './lib/diff';
 import DiffViewer from './components/DiffViewer';
 import InputForm from './components/InputForm';
@@ -11,13 +11,25 @@ function App() {
   const [newImplAddress, setNewImplAddress] = useState('');
   const [oldImplAddress, setOldImplAddress] = useState('');
   const [chainIdState, setChainIdState] = useState('1'); // Default to Ethereum
+  const [apiKey, setApiKeyState] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [showErrorDetails, setShowErrorDetails] = useState(false);
   const [oldSource, setOldSource] = useState<ContractSource | null>(null);
   const [newSource, setNewSource] = useState<ContractSource | null>(null);
   const [fileDiffs, setFileDiffs] = useState<FileDiff[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [showOnlyChanged, setShowOnlyChanged] = useState(false);
+
+  // Load API key from localStorage on mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('etherscan_api_key');
+    if (savedApiKey) {
+      setApiKeyState(savedApiKey);
+      setApiKey(savedApiKey);
+    }
+  }, []);
 
   // Parse URL parameters on mount
   useEffect(() => {
@@ -32,6 +44,12 @@ function App() {
     if (urlParams.chainid) {
       setChainIdState(urlParams.chainid);
       setChainId(urlParams.chainid);
+    }
+
+    // Set showOnlyChanged from URL
+    const filterParam = params.get('filter');
+    if (filterParam === 'changed') {
+      setShowOnlyChanged(true);
     }
 
     if (urlParams.addr) {
@@ -53,6 +71,8 @@ function App() {
     setFileDiffs([]);
     setSelectedFile(null);
     setError(null);
+    setErrorDetails(null);
+    setShowErrorDetails(false);
   };
 
   // Handler for chain ID change
@@ -74,6 +94,18 @@ function App() {
     clearResults();
   };
 
+  // Handler for API key change
+  const handleApiKeyChange = (value: string) => {
+    setApiKeyState(value);
+    setApiKey(value);
+    // Save to localStorage
+    if (value) {
+      localStorage.setItem('etherscan_api_key', value);
+    } else {
+      localStorage.removeItem('etherscan_api_key');
+    }
+  };
+
   const handleCompare = async (proxy?: string, newImpl?: string) => {
     const proxyAddr = proxy || proxyAddress;
     const newImplAddr = newImpl || newImplAddress;
@@ -85,6 +117,8 @@ function App() {
 
     setLoading(true);
     setError(null);
+    setErrorDetails(null);
+    setShowErrorDetails(false);
     setOldSource(null);
     setNewSource(null);
     setFileDiffs([]);
@@ -92,7 +126,17 @@ function App() {
 
     try {
       // Get current implementation from proxy
-      const currentImpl = await getProxyImplementation(proxyAddr);
+      let currentImpl;
+      try {
+        currentImpl = await getProxyImplementation(proxyAddr);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        const errorStack = err instanceof Error ? err.stack : undefined;
+        setError(`Failed to fetch proxy information: ${errorMsg}`);
+        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nProxy Address: ${proxyAddr}\nChain ID: ${chainIdState}`);
+        setLoading(false);
+        return;
+      }
 
       if (!currentImpl) {
         setError(`Could not fetch current implementation from proxy (${proxyAddr}). Make sure the address is a valid proxy contract.`);
@@ -109,7 +153,9 @@ function App() {
         oldSourceData = await getContractSource(currentImpl);
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        const errorStack = err instanceof Error ? err.stack : undefined;
         setError(`Failed to fetch old implementation (${currentImpl}): ${errorMsg}`);
+        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${currentImpl}\nChain ID: ${chainIdState}`);
         setLoading(false);
         return;
       }
@@ -118,7 +164,9 @@ function App() {
         newSourceData = await getContractSource(newImplAddr);
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        const errorStack = err instanceof Error ? err.stack : undefined;
         setError(`Failed to fetch new implementation (${newImplAddr}): ${errorMsg}`);
+        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${newImplAddr}\nChain ID: ${chainIdState}`);
         setLoading(false);
         return;
       }
@@ -158,7 +206,10 @@ function App() {
       window.history.pushState({}, '', url.toString());
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMsg = err instanceof Error ? err.message : 'An error occurred';
+      const errorStack = err instanceof Error ? err.stack : undefined;
+      setError(errorMsg);
+      setErrorDetails(errorStack || `Error: ${errorMsg}\n\nProxy: ${proxyAddr}\nNew Implementation: ${newImplAddr}\nChain ID: ${chainIdState}`);
     } finally {
       setLoading(false);
     }
@@ -176,7 +227,17 @@ function App() {
 
   // Toggle function for changed files filter
   const toggleChangedFilesFilter = () => {
-    setShowOnlyChanged(!showOnlyChanged);
+    const newValue = !showOnlyChanged;
+    setShowOnlyChanged(newValue);
+
+    // Update URL
+    const url = new URL(window.location.href);
+    if (newValue) {
+      url.searchParams.set('filter', 'changed');
+    } else {
+      url.searchParams.delete('filter');
+    }
+    window.history.pushState({}, '', url.toString());
   };
 
   return (
@@ -184,10 +245,10 @@ function App() {
       <header className="glass-card border-b border-gray-200/50 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="Contract Diff Viewer" className="w-10 h-10" />
+            <img src="/logo.svg" alt="CodeDiff" className="w-10 h-10" />
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Contract Diff Viewer
+                CodeDiff
               </h1>
               <p className="mt-1 text-sm text-gray-600">
                 Compare verified smart contract implementations from Etherscan.io across EVM chains
@@ -202,9 +263,11 @@ function App() {
           proxyAddress={proxyAddress}
           newImplAddress={newImplAddress}
           chainId={chainIdState}
+          apiKey={apiKey}
           onProxyChange={handleProxyAddressChange}
           onNewImplChange={handleNewImplAddressChange}
           onChainIdChange={handleChainIdChange}
+          onApiKeyChange={handleApiKeyChange}
           onCompare={() => handleCompare()}
           loading={loading}
         />
@@ -216,6 +279,37 @@ function App() {
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
               <p className="text-sm text-red-800 max-w-2xl">{error}</p>
+              {errorDetails && (
+                <div className="mt-4 w-full max-w-3xl">
+                  <button
+                    onClick={() => setShowErrorDetails(!showErrorDetails)}
+                    className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1 mx-auto"
+                  >
+                    {showErrorDetails ? (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                        Hide technical details
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        Show technical details
+                      </>
+                    )}
+                  </button>
+                  {showErrorDetails && (
+                    <div className="mt-3 p-4 bg-red-100/50 rounded-lg border border-red-200">
+                      <pre className="text-xs text-left text-red-900 font-mono overflow-x-auto whitespace-pre-wrap break-words">
+                        {errorDetails}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

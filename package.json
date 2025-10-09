@@ -1,8 +1,9 @@
 {
-  "name": "contract-diff-viewer",
+  "name": "codediff",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Compare verified smart contract implementations across EVM chains",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

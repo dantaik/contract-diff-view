@@ -4,9 +4,11 @@ interface InputFormProps {
   proxyAddress: string;
   newImplAddress: string;
   chainId: string;
+  apiKey: string;
   onProxyChange: (value: string) => void;
   onNewImplChange: (value: string) => void;
   onChainIdChange: (value: string) => void;
+  onApiKeyChange: (value: string) => void;
   onCompare: () => void;
   loading: boolean;
 }
@@ -15,9 +17,11 @@ export default function InputForm({
   proxyAddress,
   newImplAddress,
   chainId,
+  apiKey,
   onProxyChange,
   onNewImplChange,
   onChainIdChange,
+  onApiKeyChange,
   onCompare,
   loading
 }: InputFormProps) {
@@ -28,7 +32,7 @@ export default function InputForm({
 
   return (
     <form onSubmit={handleSubmit} className="glass-card rounded-xl p-6 border-0">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="space-y-2">
           <label htmlFor="chain" className="block text-sm font-semibold text-gray-700">
             Chain
@@ -74,6 +78,35 @@ export default function InputForm({
             className="input-field"
             disabled={loading}
           />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="apikey" className="block text-sm font-semibold text-gray-700">
+            API Key <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <div className="relative">
+            <input
+              id="apikey"
+              type="text"
+              value={apiKey}
+              onChange={(e) => onApiKeyChange(e.target.value)}
+              placeholder="Your Etherscan API key"
+              className="input-field pr-10"
+              disabled={loading}
+            />
+            {apiKey && (
+              <button
+                type="button"
+                onClick={() => onApiKeyChange('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
+                disabled={loading}
+                title="Clear API key"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
       <div className="mt-6 flex justify-end">

@@ -23,10 +23,6 @@ const getApiKeys = (): string[] => {
     keys.push(...fallbackKeys.split(',').map((k: string) => k.trim()));
   }
 
-  if (keys.length === 0) {
-    throw new Error('No Etherscan API keys configured. Please set VITE_ETHERSCAN_API_KEY in your .env file.');
-  }
-
   console.log(`Total API keys configured: ${keys.length}`);
   return keys;
 };
@@ -39,6 +35,23 @@ let currentChainId = DEFAULT_CHAIN_ID;
 export function setChainId(chainId: string) {
   currentChainId = chainId;
   console.log(`Chain ID set to: ${chainId}`);
+}
+
+// Global custom API key that can be set by the app
+let customApiKey = '';
+
+export function setApiKey(apiKey: string) {
+  customApiKey = apiKey;
+  console.log('Custom API key set:', apiKey ? 'Yes' : 'No');
+}
+
+function getActiveApiKeys(): string[] {
+  // If custom API key is set, use it exclusively
+  if (customApiKey) {
+    return [customApiKey];
+  }
+  // Otherwise use environment keys
+  return API_KEYS.length > 0 ? API_KEYS : [];
 }
 
 interface CacheEntry {
@@ -132,15 +145,22 @@ async function fetchWithRetry(url: string, maxRetries = 10): Promise<any> {
   let retryCount = 0;
   let delayMs = 1000; // Start with 1 second delay
 
+  const activeKeys = getActiveApiKeys();
+  const isCustomKey = customApiKey !== ''; // Track if using custom key
+
+  if (activeKeys.length === 0) {
+    throw new Error('No Etherscan API keys available. Please provide an API key or configure environment variables.');
+  }
+
   while (retryCount < maxRetries) {
-    for (let i = 0; i < API_KEYS.length; i++) {
+    for (let i = 0; i < activeKeys.length; i++) {
       try {
         // Enforce rate limiting before each API call
         await enforceRateLimit();
 
-        const apiKey = API_KEYS[i];
+        const apiKey = activeKeys[i];
         const urlWithKey = `${url}&chainid=${currentChainId}&apikey=${apiKey}`;
-        console.log(`Attempting API call (retry ${retryCount + 1}/${maxRetries}, key ${i + 1}/${API_KEYS.length}, chainId: ${currentChainId})`);
+        console.log(`Attempting API call (retry ${retryCount + 1}/${maxRetries}, key ${i + 1}/${activeKeys.length}, chainId: ${currentChainId})`);
 
         const response = await fetch(urlWithKey);
 
@@ -190,8 +210,13 @@ async function fetchWithRetry(url: string, maxRetries = 10): Promise<any> {
           throw lastError;
         }
 
+        // If using custom API key and it fails, don't retry with fallback keys
+        if (isCustomKey) {
+          throw lastError;
+        }
+
         // If it's not a rate limit error and we're on the last key, increment retry count
-        if (!lastError.message.includes('rate limit') && i === API_KEYS.length - 1) {
+        if (!lastError.message.includes('rate limit') && i === activeKeys.length - 1) {
           retryCount++;
           if (retryCount < maxRetries) {
             console.warn(`Request failed, retrying in ${delayMs}ms...`);
@@ -332,6 +357,17 @@ export async function getProxyImplementation(proxyAddress: string): Promise<stri
     return null;
   } catch (error) {
     console.error('Error fetching proxy implementation:', error);
+
+    // Re-throw API key errors and other critical errors
+    if (error instanceof Error) {
+      const errorMsg = error.message;
+      if (errorMsg.includes('Invalid API Key') ||
+          errorMsg.includes('Missing Or invalid API Key') ||
+          errorMsg.includes('rate limit')) {
+        throw error;
+      }
+    }
+
     return null;
   }
 }
