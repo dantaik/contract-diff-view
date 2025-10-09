@@ -1,14 +1,23 @@
+import {
+  ETHERSCAN_API_URL,
+  DEFAULT_CHAIN_ID,
+  CACHE_EXPIRY_MS,
+  API_DELAY_MS,
+  MAX_RETRIES,
+  INITIAL_RETRY_DELAY_MS,
+  MAX_RETRY_DELAY_MS,
+  NON_RETRYABLE_ERRORS,
+} from './constants';
+
 const getApiKeys = (): string[] => {
   const keys: string[] = [];
 
-  // Primary API key from environment
   const primaryKey = import.meta.env.VITE_ETHERSCAN_API_KEY;
   console.log('Primary API Key loaded:', primaryKey ? 'Yes' : 'No');
   if (primaryKey) {
     keys.push(primaryKey);
   }
 
-  // Fallback keys from environment (comma-separated)
   const fallbackKeys = import.meta.env.VITE_ETHERSCAN_FALLBACK_KEYS;
   if (fallbackKeys) {
     keys.push(...fallbackKeys.split(',').map((k: string) => k.trim()));
@@ -23,11 +32,6 @@ const getApiKeys = (): string[] => {
 };
 
 const API_KEYS = getApiKeys();
-
-const ETHERSCAN_API_URL = 'https://api.etherscan.io/v2/api';
-const DEFAULT_CHAIN_ID = '1'; // Ethereum mainnet
-const CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
-const API_DELAY_MS = 250; // Delay between API calls to avoid rate limits (4 calls per second max)
 
 // Global chainid that can be set by the app
 let currentChainId = DEFAULT_CHAIN_ID;
@@ -49,14 +53,20 @@ interface SourceFile {
 
 interface ContractSource {
   address: string;
+  contractName: string;
   files: SourceFile[];
   compilerVersion: string;
   verified: boolean;
+  cacheStats?: {
+    cached: number;
+    fetched: number;
+  };
 }
 
 class EtherscanCache {
   private getCacheKey(address: string, fileName?: string): string {
-    return fileName ? `${address}:${fileName}` : address;
+    const chainKey = `chain${currentChainId}`;
+    return fileName ? `${chainKey}:${address}:${fileName}` : `${chainKey}:${address}`;
   }
 
   get(address: string, fileName?: string): any | null {
@@ -100,6 +110,11 @@ const cache = new EtherscanCache();
 // Rate limiting utility
 let lastApiCallTime = 0;
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to check if error is non-retryable
+function isNonRetryableError(errorMessage: string): boolean {
+  return NON_RETRYABLE_ERRORS.some(msg => errorMessage.includes(msg));
+}
 
 async function enforceRateLimit() {
   const now = Date.now();
@@ -154,7 +169,13 @@ async function fetchWithRetry(url: string, maxRetries = 10): Promise<any> {
             break; // Break inner loop to retry
           }
 
-          // For other errors, throw immediately
+          // Check if it's a non-retryable error (invalid address, contract not found, etc.)
+          if (isNonRetryableError(errorMsg)) {
+            console.error('Non-retryable error:', errorMsg);
+            throw new Error(errorMsg);
+          }
+
+          // For other errors, throw immediately (don't retry indefinitely)
           const error = new Error(errorMsg);
           console.error('API returned NOTOK:', errorMsg);
           throw error;
@@ -163,6 +184,11 @@ async function fetchWithRetry(url: string, maxRetries = 10): Promise<any> {
         return data;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
+
+        // Check if it's a non-retryable error - if so, throw immediately
+        if (isNonRetryableError(lastError.message)) {
+          throw lastError;
+        }
 
         // If it's not a rate limit error and we're on the last key, increment retry count
         if (!lastError.message.includes('rate limit') && i === API_KEYS.length - 1) {
@@ -186,7 +212,14 @@ export async function getContractSource(address: string): Promise<ContractSource
   // Check cache first
   const cached = cache.get(address);
   if (cached) {
-    return cached;
+    // Add cache stats for fully cached contract
+    return {
+      ...cached,
+      cacheStats: {
+        cached: cached.files.length,
+        fetched: 0
+      }
+    };
   }
 
   const url = `${ETHERSCAN_API_URL}?module=contract&action=getsourcecode&address=${address}`;
@@ -203,9 +236,14 @@ export async function getContractSource(address: string): Promise<ContractSource
     if (contractData.SourceCode === '') {
       const result: ContractSource = {
         address,
+        contractName: contractData.ContractName || 'Unknown',
         files: [],
         compilerVersion: '',
-        verified: false
+        verified: false,
+        cacheStats: {
+          cached: 0,
+          fetched: 0
+        }
       };
       cache.set(address, result);
       return result;
@@ -256,9 +294,14 @@ export async function getContractSource(address: string): Promise<ContractSource
 
     const result: ContractSource = {
       address,
+      contractName: contractData.ContractName,
       files,
       compilerVersion: contractData.CompilerVersion,
-      verified: true
+      verified: true,
+      cacheStats: {
+        cached: 0,
+        fetched: files.length
+      }
     };
 
     cache.set(address, result);

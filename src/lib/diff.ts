@@ -8,6 +8,7 @@ export interface FileDiff {
   newContent: string | null;
   hasDiff: boolean;
   diffHtml?: string;
+  diffHtmlUnified?: string;
 }
 
 export function generateUnifiedDiff(
@@ -41,12 +42,19 @@ export function createFileDiffs(
       const hasDiff = oldFile.content !== newFile.content;
       let diffHtml = '';
 
+      let diffHtmlUnified = '';
+
       if (hasDiff) {
         const unifiedDiff = generateUnifiedDiff(oldFile.name, oldFile.content, newFile.content);
         diffHtml = html(unifiedDiff, {
           drawFileList: false,
           matching: 'lines',
           outputFormat: 'side-by-side'
+        });
+        diffHtmlUnified = html(unifiedDiff, {
+          drawFileList: false,
+          matching: 'lines',
+          outputFormat: 'line-by-line'
         });
       }
 
@@ -55,7 +63,8 @@ export function createFileDiffs(
         oldContent: oldFile.content,
         newContent: newFile.content,
         hasDiff,
-        diffHtml
+        diffHtml,
+        diffHtmlUnified
       });
     } else {
       // File only exists in old version (deleted)
@@ -65,13 +74,19 @@ export function createFileDiffs(
         matching: 'lines',
         outputFormat: 'side-by-side'
       });
+      const diffHtmlUnified = html(unifiedDiff, {
+        drawFileList: false,
+        matching: 'lines',
+        outputFormat: 'line-by-line'
+      });
 
       diffs.push({
         fileName: oldFile.name,
         oldContent: oldFile.content,
         newContent: null,
         hasDiff: true,
-        diffHtml
+        diffHtml,
+        diffHtmlUnified
       });
     }
   }
@@ -85,13 +100,19 @@ export function createFileDiffs(
         matching: 'lines',
         outputFormat: 'side-by-side'
       });
+      const diffHtmlUnified = html(unifiedDiff, {
+        drawFileList: false,
+        matching: 'lines',
+        outputFormat: 'line-by-line'
+      });
 
       diffs.push({
         fileName: newFile.name,
         oldContent: null,
         newContent: newFile.content,
         hasDiff: true,
-        diffHtml
+        diffHtml,
+        diffHtmlUnified
       });
     }
   }
