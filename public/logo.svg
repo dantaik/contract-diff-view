@@ -1,0 +1,24 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for better visibility on various backgrounds -->
+  <circle cx="20" cy="20" r="20" fill="url(#gradient)" opacity="0.1"/>
+
+  <!-- Left document (old version) -->
+  <path d="M11 8C11 6.89543 11.8954 6 13 6H18.5858C19.1162 6 19.6249 6.21071 20 6.58579L23.4142 10C23.7893 10.3751 24 10.8838 24 11.4142V20C24 20.5523 23.5523 21 23 21H13C11.8954 21 11 20.1046 11 19V8Z" fill="url(#gradient)" opacity="0.6"/>
+
+  <!-- Right document (new version) - slightly offset -->
+  <path d="M16 19C16 17.8954 16.8954 17 18 17H23.5858C24.1162 17 24.6249 17.2107 25 17.5858L28.4142 21C28.7893 21.3751 29 21.8838 29 22.4142V31C29 32.1046 28.1046 33 27 33H18C16.8954 33 16 32.1046 16 31V19Z" fill="#E81899"/>
+
+  <!-- Diff indicator - subtle chevrons in the center -->
+  <g opacity="0.9">
+    <path d="M19 24L21 22L19 20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M23 20L25 22L23 24" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E81899"/>
+      <stop offset="100%" stop-color="#FF4DB8"/>
+    </linearGradient>
+  </defs>
+</svg>

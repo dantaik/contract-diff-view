@@ -1,0 +1,85 @@
+import type { FileDiff } from '../lib/diff';
+
+interface FileListProps {
+  files: FileDiff[];
+  selectedFile: string | null;
+  onSelectFile: (fileName: string) => void;
+  showOnlyChanged: boolean;
+  onToggleFilter: () => void;
+}
+
+export default function FileList({ files, selectedFile, onSelectFile, showOnlyChanged, onToggleFilter }: FileListProps) {
+  return (
+    <div className="glass-card rounded-xl border-0 overflow-hidden sticky top-32">
+      <div className="px-5 py-4 border-b border-gray-200/50">
+        <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Files</h2>
+        <p className="text-xs text-gray-500 mt-1">{files.length} total</p>
+        <label className="flex items-center gap-2 mt-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={showOnlyChanged}
+            onChange={onToggleFilter}
+            className="w-4 h-4 rounded border-gray-300 text-taiko-pink focus:ring-taiko-pink focus:ring-offset-0 cursor-pointer"
+          />
+          <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors">Show only changed files</span>
+        </label>
+      </div>
+      <div className="max-h-[calc(100vh-400px)] overflow-y-auto space-y-1 px-2 pb-2">
+        {files.map((file) => {
+          const isSelected = selectedFile === file.fileName;
+          const isModified = file.hasDiff && file.oldContent !== null && file.newContent !== null;
+          const isAdded = file.oldContent === null;
+          const isDeleted = file.newContent === null;
+
+          return (
+            <button
+              key={file.fileName}
+              onClick={() => onSelectFile(file.fileName)}
+              className={`w-full px-4 py-3 text-left hover:bg-taiko-pink/5 transition-colors duration-150 rounded-lg ${
+                isSelected ? 'bg-taiko-pink/10' : ''
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-mono text-gray-900 truncate block">
+                    {file.fileName.split('/').pop()}
+                  </span>
+                  {file.fileName.includes('/') && (
+                    <div className="text-xs text-gray-500 mt-0.5 truncate opacity-60">
+                      {file.fileName.substring(0, file.fileName.lastIndexOf('/'))}
+                    </div>
+                  )}
+                </div>
+                {file.hasDiff && (
+                  <div className="flex-shrink-0 mt-0.5">
+                    {isAdded && (
+                      <div className="w-6 h-6 rounded-md bg-pink-100 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-taiko-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </div>
+                    )}
+                    {isDeleted && (
+                      <div className="w-6 h-6 rounded-md bg-pink-100 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-taiko-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                        </svg>
+                      </div>
+                    )}
+                    {isModified && (
+                      <div className="w-6 h-6 rounded-md bg-pink-100 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-taiko-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
