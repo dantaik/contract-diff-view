@@ -2,7 +2,7 @@
 
 A web application for comparing verified smart contract implementations across EVM chains. CodeDiff helps developers understand code-level changes during contract upgrades by fetching source code from Etherscan and displaying side-by-side diffs.
 
-**🌐 Live:** [codediff.taiko.eth](https://codediff.taiko.eth)
+**🌐 Live:** [codediff.taiko.xyz](https://codediff.taiko.xyz)
 
 ## Features
 
@@ -21,7 +21,7 @@ A web application for comparing verified smart contract implementations across E
 
 ### Using the App
 
-1. Visit [codediff.taiko.eth](https://codediff.taiko.eth)
+1. Visit [codediff.taiko.xyz](https://codediff.taiko.xyz)
 2. Select chain (Ethereum, Taiko, etc.)
 3. Enter proxy contract address
 4. Enter new implementation address
@@ -33,7 +33,7 @@ A web application for comparing verified smart contract implementations across E
 Share comparisons via URL with these parameters:
 
 ```
-https://codediff.taiko.eth/?addr=0x...&newimpl=0x...&chainid=1
+https://codediff.taiko.xyz/?addr=0x...&newimpl=0x...&chainid=1
 ```
 
 | Parameter | Description | Example |
@@ -46,12 +46,12 @@ https://codediff.taiko.eth/?addr=0x...&newimpl=0x...&chainid=1
 
 **Ethereum Mainnet:**
 ```
-https://codediff.taiko.eth/?addr=0xd60247c6848B7Ca29eDdF63AA924E53dB6Ddd8EC&newimpl=0x2705b12a971da766a3f9321a743d61cead67da2f&chainid=1
+https://codediff.taiko.xyz/?addr=0xd60247c6848B7Ca29eDdF63AA924E53dB6Ddd8EC&newimpl=0x2705b12a971da766a3f9321a743d61cead67da2f&chainid=1
 ```
 
 **Taiko:**
 ```
-https://codediff.taiko.eth/?addr=0x...&newimpl=0x...&chainid=167000
+https://codediff.taiko.xyz/?addr=0x...&newimpl=0x...&chainid=167000
 ```
 
 ## Development
@@ -224,7 +224,7 @@ MIT License - see LICENSE file for details
 
 ## Links
 
-- **Live App:** [codediff.taiko.eth](https://codediff.taiko.eth)
+- **Live App:** [codediff.taiko.xyz](https://codediff.taiko.xyz)
 - **GitHub:** [github.com/dantaik/contract-diff-view](https://github.com/dantaik/contract-diff-view)
 - **Etherscan API:** [docs.etherscan.io](https://docs.etherscan.io/)
 
