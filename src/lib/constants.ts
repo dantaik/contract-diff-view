@@ -22,6 +22,7 @@ export const NON_RETRYABLE_ERRORS = [
 export const SUPPORTED_CHAINS = [
   { id: '1', name: 'Ethereum' },
   { id: '17000', name: 'Ethereum Holesky' },
+  { id: '560048', name: 'Ethereum Hoodi' },
   { id: '167000', name: 'Taiko' },
   { id: '167012', name: 'Taiko Hoodi' },
 ] as const;
