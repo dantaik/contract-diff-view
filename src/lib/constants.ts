@@ -21,7 +21,9 @@ export const NON_RETRYABLE_ERRORS = [
 // Supported chains
 export const SUPPORTED_CHAINS = [
   { id: '1', name: 'Ethereum' },
+  { id: '17000', name: 'Ethereum Holesky' },
   { id: '167000', name: 'Taiko' },
+  { id: '167012', name: 'Taiko Hoodi' },
 ] as const;
 
 // File change icons
