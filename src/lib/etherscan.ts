@@ -67,6 +67,8 @@ interface ContractSource {
   files: SourceFile[];
   compilerVersion: string;
   verified: boolean;
+  constructorArguments?: string | null;
+  abi?: any[] | null;
   cacheStats?: {
     cached: number;
     fetched: number;
@@ -74,9 +76,12 @@ interface ContractSource {
 }
 
 class EtherscanCache {
+  private readonly CACHE_VERSION = 'v2'; // Increment when cache structure changes
+
   private getCacheKey(address: string, fileName?: string): string {
     const chainKey = `chain${currentChainId}`;
-    return fileName ? `${chainKey}:${address}:${fileName}` : `${chainKey}:${address}`;
+    const versionKey = `${this.CACHE_VERSION}:${chainKey}`;
+    return fileName ? `${versionKey}:${address}:${fileName}` : `${versionKey}:${address}`;
   }
 
   get(address: string, fileName?: string): any | null {
@@ -262,6 +267,8 @@ export async function getContractSource(address: string): Promise<ContractSource
         files: [],
         compilerVersion: '',
         verified: false,
+        constructorArguments: null,
+        abi: null,
         cacheStats: {
           cached: 0,
           fetched: 0
@@ -314,12 +321,29 @@ export async function getContractSource(address: string): Promise<ContractSource
       }];
     }
 
+    // Extract constructor arguments from the same response
+    const constructorArguments = contractData.ConstructorArguments && contractData.ConstructorArguments !== ''
+      ? contractData.ConstructorArguments
+      : null;
+
+    // Parse ABI if available
+    let abi: any[] | null = null;
+    if (contractData.ABI && contractData.ABI !== 'Contract source code not verified') {
+      try {
+        abi = JSON.parse(contractData.ABI);
+      } catch (e) {
+        console.warn('Failed to parse ABI:', e);
+      }
+    }
+
     const result: ContractSource = {
       address,
       contractName: contractData.ContractName,
       files,
       compilerVersion: contractData.CompilerVersion,
       verified: true,
+      constructorArguments,
+      abi,
       cacheStats: {
         cached: 0,
         fetched: files.length
@@ -365,6 +389,49 @@ export async function getProxyImplementation(proxyAddress: string): Promise<stri
       }
     }
 
+    return null;
+  }
+}
+
+export async function getContractABI(address: string): Promise<any[] | null> {
+  const url = `${ETHERSCAN_API_URL}?module=contract&action=getabi&address=${address}`;
+
+  try {
+    const data = await fetchWithRetry(url);
+
+    if (!data.result || data.result === 'Contract source code not verified') {
+      return null;
+    }
+
+    // Parse the ABI JSON string
+    const abi = JSON.parse(data.result);
+    return abi;
+  } catch (error) {
+    console.error('Error fetching contract ABI:', error);
+    return null;
+  }
+}
+
+export async function getConstructorArguments(address: string): Promise<string | null> {
+  const url = `${ETHERSCAN_API_URL}?module=contract&action=getsourcecode&address=${address}`;
+
+  try {
+    const data = await fetchWithRetry(url);
+
+    if (!data.result || data.result.length === 0) {
+      return null;
+    }
+
+    const contractData = data.result[0];
+
+    // ConstructorArguments is a hex string of the encoded constructor arguments
+    if (contractData.ConstructorArguments && contractData.ConstructorArguments !== '') {
+      return contractData.ConstructorArguments;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error fetching constructor arguments:', error);
     return null;
   }
 }

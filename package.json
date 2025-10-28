@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "diff2html": "^3.4.52",
+    "ethers": "^6.15.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
