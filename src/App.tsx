@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { getContractSource, getProxyImplementation, setChainId, setApiKey, type ContractSource } from './lib/etherscan';
 import { createFileDiffs, type FileDiff } from './lib/diff';
+import { decodeConstructorArguments } from './lib/decoder';
 import DiffViewer from './components/DiffViewer';
 import InputForm from './components/InputForm';
 import FileList from './components/FileList';
-import type { URLParams } from './types';
+import ImplementationInfo from './components/ImplementationInfo';
+import type { URLParams, ConstructorInfo } from './types';
 
 function App() {
   const [proxyAddress, setProxyAddress] = useState('');
@@ -18,6 +20,8 @@ function App() {
   const [showErrorDetails, setShowErrorDetails] = useState(false);
   const [oldSource, setOldSource] = useState<ContractSource | null>(null);
   const [newSource, setNewSource] = useState<ContractSource | null>(null);
+  const [oldConstructor, setOldConstructor] = useState<ConstructorInfo | null>(null);
+  const [newConstructor, setNewConstructor] = useState<ConstructorInfo | null>(null);
   const [fileDiffs, setFileDiffs] = useState<FileDiff[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [showOnlyChanged, setShowOnlyChanged] = useState(false);
@@ -68,6 +72,8 @@ function App() {
   const clearResults = () => {
     setOldSource(null);
     setNewSource(null);
+    setOldConstructor(null);
+    setNewConstructor(null);
     setFileDiffs([]);
     setSelectedFile(null);
     setError(null);
@@ -121,6 +127,8 @@ function App() {
     setShowErrorDetails(false);
     setOldSource(null);
     setNewSource(null);
+    setOldConstructor(null);
+    setNewConstructor(null);
     setFileDiffs([]);
     setSelectedFile(null);
 
@@ -185,6 +193,27 @@ function App() {
 
       setOldSource(oldSourceData);
       setNewSource(newSourceData);
+
+      // Use cached constructor arguments and ABI from contract source data
+      // Decode constructor arguments using cached ABI
+      const oldDecodedParams = oldSourceData.abi && oldSourceData.constructorArguments
+        ? decodeConstructorArguments(oldSourceData.abi, oldSourceData.constructorArguments)
+        : null;
+      const newDecodedParams = newSourceData.abi && newSourceData.constructorArguments
+        ? decodeConstructorArguments(newSourceData.abi, newSourceData.constructorArguments)
+        : null;
+
+      setOldConstructor({
+        address: currentImpl,
+        arguments: oldSourceData.constructorArguments ?? null,
+        decodedParams: oldDecodedParams
+      });
+
+      setNewConstructor({
+        address: newImplAddr,
+        arguments: newSourceData.constructorArguments ?? null,
+        decodedParams: newDecodedParams
+      });
 
       // Generate diffs
       const diffs = createFileDiffs(oldSourceData.files, newSourceData.files);
@@ -329,47 +358,20 @@ function App() {
           <div className="mt-8 space-y-6">
             <div className="glass-card rounded-xl border-0 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200/50">
-                {/* Old Implementation */}
-                <div className="p-6">
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Old Implementation</p>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Name</p>
-                      <p className="text-sm font-bold text-gray-900">{oldSource.contractName}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Address</p>
-                      <p className="font-mono text-xs text-gray-900 break-all bg-red-50 px-3 py-2 rounded-lg">{oldImplAddress}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Compiler</p>
-                      <p className="text-xs text-gray-900 font-medium">{oldSource.compilerVersion}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* New Implementation */}
-                <div className="p-6">
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">New Implementation</p>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Name</p>
-                      <p className="text-sm font-bold text-gray-900">{newSource.contractName}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Address</p>
-                      <p className="font-mono text-xs text-gray-900 break-all bg-green-50 px-3 py-2 rounded-lg">{newImplAddress}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Compiler</p>
-                      <p className="text-xs text-gray-900 font-medium">{newSource.compilerVersion}</p>
-                    </div>
-                  </div>
-                </div>
+                <ImplementationInfo
+                  source={oldSource}
+                  address={oldImplAddress}
+                  constructor={oldConstructor}
+                  comparisonConstructor={newConstructor}
+                  variant="old"
+                />
+                <ImplementationInfo
+                  source={newSource}
+                  address={newImplAddress}
+                  constructor={newConstructor}
+                  comparisonConstructor={oldConstructor}
+                  variant="new"
+                />
               </div>
 
               {/* Statistics Bar */}
