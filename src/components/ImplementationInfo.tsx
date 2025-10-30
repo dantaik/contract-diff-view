@@ -22,21 +22,11 @@ export default function ImplementationInfo({
 }: ImplementationInfoProps) {
   const addressBgColor = variant === 'old' ? 'bg-diff-deletion' : 'bg-diff-addition';
   const title = variant === 'old' ? 'Old Implementation' : 'New Implementation';
-  const icon = variant === 'old'
-    ? <svg className="w-4 h-4 text-taiko-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    : <svg className="w-4 h-4 text-taiko-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-      </svg>;
 
   return (
     <div className="p-6">
       <div className="mb-4">
-        <div className="flex items-center gap-2">
-          {icon}
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</p>
-        </div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</p>
       </div>
       <div className="space-y-3">
         <div>
