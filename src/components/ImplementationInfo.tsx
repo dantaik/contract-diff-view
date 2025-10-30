@@ -20,7 +20,7 @@ export default function ImplementationInfo({
   variant,
   chainId
 }: ImplementationInfoProps) {
-  const addressBgColor = variant === 'old' ? 'bg-red-50' : 'bg-green-50';
+  const addressBgColor = variant === 'old' ? 'bg-red-50' : 'bg-green-100';
   const title = variant === 'old' ? 'Old Implementation' : 'New Implementation';
   const icon = variant === 'old'
     ? <svg className="w-4 h-4 text-taiko-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">

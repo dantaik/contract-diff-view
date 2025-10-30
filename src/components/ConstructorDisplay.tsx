@@ -16,7 +16,7 @@ export default function ConstructorDisplay({
   if (!ctorInfo) return null;
 
   const hasChanged = comparisonConstructor && ctorInfo.arguments !== comparisonConstructor.arguments;
-  const highlightColor = variant === 'old' ? 'bg-red-50' : 'bg-green-50';
+  const highlightColor = variant === 'old' ? 'bg-red-50' : 'bg-green-100';
 
   const renderDecodedParams = (params: DecodedParam[]) => {
     return (
