@@ -25,7 +25,7 @@ export default function DiffViewer({ diff }: DiffViewerProps) {
           Code Comparison - <span className="font-mono normal-case">{diff.fileName}</span>
         </PanelTitle>
       </div>
-      <div className="overflow-x-auto bg-white">
+      <div className="overflow-auto bg-white max-h-[calc(100vh-300px)]">
         {/* Side-by-side diff on desktop, unified on mobile */}
         <div className="hidden md:block diff-viewer" dangerouslySetInnerHTML={{ __html: diff.diffHtml || '' }} />
         <div className="block md:hidden diff-viewer" dangerouslySetInnerHTML={{ __html: diff.diffHtmlUnified || '' }} />
