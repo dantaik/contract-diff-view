@@ -74,7 +74,6 @@ body {
 .diff-viewer .d2h-file-header {
   background-color: transparent !important;
   border: none !important;
-  border-bottom: 1px solid rgba(229, 231, 235, 0.5) !important;
   padding: 0.75rem 1.5rem !important;
 }
 
@@ -89,10 +88,18 @@ body {
 .diff-viewer .d2h-code-side-linenumber,
 .diff-viewer .d2h-code-linenumber {
   background-color: #f9fafb !important;
-  border-color: rgba(229, 231, 235, 0.5) !important;
+  border: none !important;
 }
 
 .diff-viewer .d2h-code-side-line,
 .diff-viewer .d2h-code-line {
-  border-color: rgba(229, 231, 235, 0.5) !important;
+  border: none !important;
+}
+
+.diff-viewer td {
+  border: none !important;
+}
+
+.diff-viewer tr {
+  border: none !important;
 }
