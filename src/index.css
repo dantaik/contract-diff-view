@@ -56,3 +56,12 @@ body {
   box-shadow: 0 0 0 2px rgba(232, 24, 153, 0.2);
   border-color: #E81899;
 }
+
+/* Match diff viewer colors exactly */
+.bg-diff-addition {
+  background-color: #ddffdd;
+}
+
+.bg-diff-deletion {
+  background-color: #ffdddd;
+}

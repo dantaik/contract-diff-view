@@ -19,7 +19,7 @@ export default function ConstructorDisplay({
   if (!ctorInfo) return null;
 
   const hasChanged = comparisonConstructor && ctorInfo.arguments !== comparisonConstructor.arguments;
-  const highlightColor = variant === 'old' ? 'bg-red-50' : 'bg-green-100';
+  const highlightColor = variant === 'old' ? 'bg-diff-deletion' : 'bg-diff-addition';
 
   // Helper to check if a value looks like an Ethereum address
   const isAddress = (value: string, type: string): boolean => {
