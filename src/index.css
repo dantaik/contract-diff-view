@@ -76,9 +76,7 @@ body {
 }
 
 .diff-viewer .d2h-file-header {
-  background-color: transparent !important;
-  border: none !important;
-  padding: 0.75rem 1.5rem !important;
+  display: none !important;
 }
 
 .diff-viewer .d2h-file-diff {
