@@ -53,7 +53,7 @@ export default function InputForm({
         </div>
         <div className="space-y-2">
           <label htmlFor="proxy" className="block text-sm font-semibold text-gray-700">
-            Old Implementation Address/Upgradable Proxy
+            Old Implementation Address (or Proxy)
           </label>
           <input
             id="proxy"
