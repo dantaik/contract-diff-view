@@ -5,7 +5,6 @@ interface ConstructorDisplayProps {
   constructor: ConstructorInfo | null;
   comparisonConstructor?: ConstructorInfo | null;
   variant: 'old' | 'new';
-  showChangeBadge?: boolean;
   chainId: string;
 }
 
@@ -13,12 +12,10 @@ export default function ConstructorDisplay({
   constructor: ctorInfo,
   comparisonConstructor,
   variant,
-  showChangeBadge = false,
   chainId
 }: ConstructorDisplayProps) {
   if (!ctorInfo) return null;
 
-  const hasChanged = comparisonConstructor && ctorInfo.arguments !== comparisonConstructor.arguments;
   const highlightColor = variant === 'old' ? 'bg-diff-deletion' : 'bg-diff-addition';
 
   // Helper to check if a value looks like an Ethereum address
