@@ -71,6 +71,10 @@ body {
   border: none !important;
 }
 
+.diff-viewer .d2h-file-wrapper {
+  border: none !important;
+}
+
 .diff-viewer .d2h-file-header {
   background-color: transparent !important;
   border: none !important;
