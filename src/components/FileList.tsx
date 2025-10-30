@@ -10,7 +10,7 @@ export default function FileList({ files, selectedFile, onSelectFile }: FileList
   return (
     <div className="glass-card rounded-xl border-0 overflow-hidden sticky top-32">
       <div className="px-6 py-6 border-b border-gray-200/50">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Solidity Source Files</p>
+        <p className="text-xs font-semibold text-taiko-pink uppercase tracking-wider">Solidity Source Files</p>
       </div>
       <div className="max-h-[calc(100vh-400px)] overflow-y-auto space-y-1 px-2 pb-2">
         {files.map((file) => {
