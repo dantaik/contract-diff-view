@@ -20,7 +20,7 @@ export default function DiffViewer({ diff }: DiffViewerProps) {
   return (
     <div className="glass-card rounded-xl border-0 overflow-hidden">
       <div className="px-6 py-6 border-b border-gray-200/50">
-        <p className="text-xs font-semibold text-taiko-pink uppercase tracking-wider">
+        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#E81899' }}>
           Code Comparison - <span className="font-mono normal-case">{diff.fileName}</span>
         </p>
       </div>

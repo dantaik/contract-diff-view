@@ -26,7 +26,7 @@ export default function ImplementationInfo({
   return (
     <div className="p-6">
       <div className="mb-4">
-        <p className="text-xs font-semibold text-taiko-pink uppercase tracking-wider">{title}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#E81899' }}>{title}</p>
       </div>
       <div className="space-y-3">
         <div>
