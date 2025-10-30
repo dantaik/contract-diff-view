@@ -11,7 +11,12 @@ export default function ProxyInfoDisplay({ proxyInfo }: ProxyInfoDisplayProps) {
     <div className="glass-card rounded-xl border-0 overflow-hidden mb-6">
       <div className="p-6">
         <div className="mb-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">🔄 Proxy Contract</p>
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-taiko-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Proxy Contract</p>
+          </div>
         </div>
         <div className="space-y-3">
           <div>
