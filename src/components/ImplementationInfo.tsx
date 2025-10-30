@@ -49,7 +49,6 @@ export default function ImplementationInfo({
             constructor={ctorInfo}
             comparisonConstructor={comparisonConstructor}
             variant={variant}
-            showChangeBadge={variant === 'new'}
             chainId={chainId}
           />
         )}
