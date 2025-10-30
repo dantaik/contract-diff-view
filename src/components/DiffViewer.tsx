@@ -22,7 +22,7 @@ export default function DiffViewer({ diff }: DiffViewerProps) {
       <div className="px-6 py-6 border-b border-gray-200/50">
         <div className="flex items-center gap-2">
           <svg className="w-4 h-4" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" fill="#E81899" />
+            <circle cx="12" cy="12" r="10" fill="#000000" />
             <path d="M12 2 A10 10 0 0 1 12 22 A5 5 0 0 1 12 12 A5 5 0 0 0 12 2" fill="white" />
           </svg>
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
