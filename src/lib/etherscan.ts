@@ -358,26 +358,36 @@ export async function getContractSource(address: string): Promise<ContractSource
   }
 }
 
-export async function getProxyImplementation(proxyAddress: string): Promise<string | null> {
-  const url = `${ETHERSCAN_API_URL}?module=contract&action=getsourcecode&address=${proxyAddress}`;
+export interface ProxyInfo {
+  isProxy: boolean;
+  implementation?: string;
+  proxyAddress?: string;
+}
+
+export async function checkIfProxy(address: string): Promise<ProxyInfo> {
+  const url = `${ETHERSCAN_API_URL}?module=contract&action=getsourcecode&address=${address}`;
 
   try {
     const data = await fetchWithRetry(url);
 
     if (!data.result || data.result.length === 0) {
-      return null;
+      return { isProxy: false };
     }
 
     const contractData = data.result[0];
 
     // Check if it's a proxy
     if (contractData.Implementation && contractData.Implementation !== '') {
-      return contractData.Implementation;
+      return {
+        isProxy: true,
+        implementation: contractData.Implementation,
+        proxyAddress: address
+      };
     }
 
-    return null;
+    return { isProxy: false };
   } catch (error) {
-    console.error('Error fetching proxy implementation:', error);
+    console.error('Error checking if proxy:', error);
 
     // Re-throw API key errors and other critical errors
     if (error instanceof Error) {
@@ -389,8 +399,13 @@ export async function getProxyImplementation(proxyAddress: string): Promise<stri
       }
     }
 
-    return null;
+    return { isProxy: false };
   }
+}
+
+export async function getProxyImplementation(proxyAddress: string): Promise<string | null> {
+  const proxyInfo = await checkIfProxy(proxyAddress);
+  return proxyInfo.implementation || null;
 }
 
 export async function getContractABI(address: string): Promise<any[] | null> {

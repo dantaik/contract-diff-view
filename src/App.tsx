@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { getContractSource, getProxyImplementation, setChainId, setApiKey, type ContractSource } from './lib/etherscan';
+import { getContractSource, checkIfProxy, setChainId, setApiKey, type ContractSource, type ProxyInfo } from './lib/etherscan';
 import { createFileDiffs, type FileDiff } from './lib/diff';
 import { decodeConstructorArguments } from './lib/decoder';
 import DiffViewer from './components/DiffViewer';
 import InputForm from './components/InputForm';
 import FileList from './components/FileList';
 import ImplementationInfo from './components/ImplementationInfo';
+import ProxyInfoDisplay from './components/ProxyInfoDisplay';
 import type { URLParams, ConstructorInfo } from './types';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
   const [fileDiffs, setFileDiffs] = useState<FileDiff[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [showOnlyChanged, setShowOnlyChanged] = useState(false);
+  const [proxyInfo, setProxyInfo] = useState<ProxyInfo | null>(null);
 
   // Load API key from localStorage on mount
   useEffect(() => {
@@ -79,6 +81,7 @@ function App() {
     setError(null);
     setErrorDetails(null);
     setShowErrorDetails(false);
+    setProxyInfo(null);
   };
 
   // Handler for chain ID change
@@ -113,11 +116,11 @@ function App() {
   };
 
   const handleCompare = async (proxy?: string, newImpl?: string) => {
-    const proxyAddr = proxy || proxyAddress;
+    const addrParam = proxy || proxyAddress;
     const newImplAddr = newImpl || newImplAddress;
 
-    if (!proxyAddr || !newImplAddr) {
-      setError('Please provide both proxy address and new implementation address');
+    if (!addrParam || !newImplAddr) {
+      setError('Please provide both addresses');
       return;
     }
 
@@ -131,25 +134,32 @@ function App() {
     setNewConstructor(null);
     setFileDiffs([]);
     setSelectedFile(null);
+    setProxyInfo(null);
 
     try {
-      // Get current implementation from proxy
-      let currentImpl;
+      // Check if the address is a proxy
+      let proxyInfoData: ProxyInfo;
       try {
-        currentImpl = await getProxyImplementation(proxyAddr);
+        proxyInfoData = await checkIfProxy(addrParam);
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error';
         const errorStack = err instanceof Error ? err.stack : undefined;
-        setError(`Failed to fetch proxy information: ${errorMsg}`);
-        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nProxy Address: ${proxyAddr}\nChain ID: ${chainIdState}`);
+        setError(`Failed to fetch address information: ${errorMsg}`);
+        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${addrParam}\nChain ID: ${chainIdState}`);
         setLoading(false);
         return;
       }
 
-      if (!currentImpl) {
-        setError(`Could not fetch current implementation from proxy (${proxyAddr}). Make sure the address is a valid proxy contract.`);
-        setLoading(false);
-        return;
+      let currentImpl: string;
+
+      if (proxyInfoData.isProxy && proxyInfoData.implementation) {
+        // Address is a proxy - get the implementation
+        setProxyInfo(proxyInfoData);
+        currentImpl = proxyInfoData.implementation;
+      } else {
+        // Address is not a proxy - treat it as the old implementation directly
+        setProxyInfo(null);
+        currentImpl = addrParam;
       }
 
       setOldImplAddress(currentImpl);
@@ -229,7 +239,7 @@ function App() {
 
       // Update URL
       const url = new URL(window.location.href);
-      url.searchParams.set('addr', proxyAddr);
+      url.searchParams.set('addr', addrParam);
       url.searchParams.set('newimpl', newImplAddr);
       url.searchParams.set('chainid', chainIdState);
       window.history.pushState({}, '', url.toString());
@@ -238,7 +248,7 @@ function App() {
       const errorMsg = err instanceof Error ? err.message : 'An error occurred';
       const errorStack = err instanceof Error ? err.stack : undefined;
       setError(errorMsg);
-      setErrorDetails(errorStack || `Error: ${errorMsg}\n\nProxy: ${proxyAddr}\nNew Implementation: ${newImplAddr}\nChain ID: ${chainIdState}`);
+      setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${addrParam}\nNew Implementation: ${newImplAddr}\nChain ID: ${chainIdState}`);
     } finally {
       setLoading(false);
     }
@@ -356,6 +366,9 @@ function App() {
 
         {!loading && oldSource && newSource && (
           <div className="mt-8 space-y-6">
+            {proxyInfo && proxyInfo.isProxy && (
+              <ProxyInfoDisplay proxyInfo={proxyInfo} />
+            )}
             <div className="glass-card rounded-xl border-0 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200/50">
                 <ImplementationInfo
