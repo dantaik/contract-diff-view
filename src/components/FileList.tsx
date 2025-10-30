@@ -4,11 +4,9 @@ interface FileListProps {
   files: FileDiff[];
   selectedFile: string | null;
   onSelectFile: (fileName: string) => void;
-  showOnlyChanged: boolean;
-  onToggleFilter: () => void;
 }
 
-export default function FileList({ files, selectedFile, onSelectFile, showOnlyChanged, onToggleFilter }: FileListProps) {
+export default function FileList({ files, selectedFile, onSelectFile }: FileListProps) {
   return (
     <div className="glass-card rounded-xl border-0 overflow-hidden sticky top-32">
       <div className="px-6 pt-6 pb-4 border-b border-gray-200/50">
@@ -20,16 +18,7 @@ export default function FileList({ files, selectedFile, onSelectFile, showOnlyCh
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Solidity Source Files</p>
           </div>
         </div>
-        <p className="text-xs text-gray-500">{files.length} total</p>
-        <label className="flex items-center gap-2 mt-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={showOnlyChanged}
-            onChange={onToggleFilter}
-            className="w-4 h-4 rounded border-gray-300 text-taiko-pink focus:ring-taiko-pink focus:ring-offset-0 cursor-pointer"
-          />
-          <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors">Show only changed files</span>
-        </label>
+        <p className="text-xs text-gray-500">{files.length} changed</p>
       </div>
       <div className="max-h-[calc(100vh-400px)] overflow-y-auto space-y-1 px-2 pb-2">
         {files.map((file) => {

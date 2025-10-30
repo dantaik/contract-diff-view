@@ -25,7 +25,6 @@ function App() {
   const [newConstructor, setNewConstructor] = useState<ConstructorInfo | null>(null);
   const [fileDiffs, setFileDiffs] = useState<FileDiff[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [showOnlyChanged, setShowOnlyChanged] = useState(false);
   const [proxyInfo, setProxyInfo] = useState<ProxyInfo | null>(null);
 
   // Load API key from localStorage on mount
@@ -50,12 +49,6 @@ function App() {
     if (urlParams.chainid) {
       setChainIdState(urlParams.chainid);
       setChainId(urlParams.chainid);
-    }
-
-    // Set showOnlyChanged from URL
-    const filterParam = params.get('filter');
-    if (filterParam === 'changed') {
-      setShowOnlyChanged(true);
     }
 
     if (urlParams.addr) {
@@ -261,23 +254,8 @@ function App() {
   const totalCached = (oldSource?.cacheStats?.cached || 0) + (newSource?.cacheStats?.cached || 0);
   const totalFetched = (oldSource?.cacheStats?.fetched || 0) + (newSource?.cacheStats?.fetched || 0);
 
-  // Filter files based on showOnlyChanged
-  const displayedFiles = showOnlyChanged ? fileDiffs.filter(d => d.hasDiff) : fileDiffs;
-
-  // Toggle function for changed files filter
-  const toggleChangedFilesFilter = () => {
-    const newValue = !showOnlyChanged;
-    setShowOnlyChanged(newValue);
-
-    // Update URL
-    const url = new URL(window.location.href);
-    if (newValue) {
-      url.searchParams.set('filter', 'changed');
-    } else {
-      url.searchParams.delete('filter');
-    }
-    window.history.pushState({}, '', url.toString());
-  };
+  // Always filter to show only changed files
+  const displayedFiles = fileDiffs.filter(d => d.hasDiff);
 
   return (
     <div className="min-h-screen">
@@ -425,8 +403,6 @@ function App() {
                   files={displayedFiles}
                   selectedFile={selectedFile}
                   onSelectFile={setSelectedFile}
-                  showOnlyChanged={showOnlyChanged}
-                  onToggleFilter={toggleChangedFilesFilter}
                 />
               </div>
               <div className="col-span-12 lg:col-span-9">
