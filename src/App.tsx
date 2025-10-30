@@ -249,6 +249,10 @@ function App() {
 
   const selectedDiff = fileDiffs.find(d => d.fileName === selectedFile);
 
+  // Calculate combined cache statistics
+  const totalCached = (oldSource?.cacheStats?.cached || 0) + (newSource?.cacheStats?.cached || 0);
+  const totalFetched = (oldSource?.cacheStats?.fetched || 0) + (newSource?.cacheStats?.fetched || 0);
+
   // Always filter to show only changed files
   const displayedFiles = fileDiffs.filter(d => d.hasDiff);
 
@@ -369,6 +373,8 @@ function App() {
                   files={displayedFiles}
                   selectedFile={selectedFile}
                   onSelectFile={setSelectedFile}
+                  totalFetched={totalFetched}
+                  totalCached={totalCached}
                 />
               </div>
               <div className="col-span-12 lg:col-span-9">

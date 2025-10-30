@@ -4,13 +4,29 @@ interface FileListProps {
   files: FileDiff[];
   selectedFile: string | null;
   onSelectFile: (fileName: string) => void;
+  totalFetched: number;
+  totalCached: number;
 }
 
-export default function FileList({ files, selectedFile, onSelectFile }: FileListProps) {
+export default function FileList({ files, selectedFile, onSelectFile, totalFetched, totalCached }: FileListProps) {
   return (
     <div className="glass-card rounded-xl border-0 overflow-hidden sticky top-32">
       <div className="px-6 py-6 border-b border-gray-200/50">
-        <p className="text-xs font-semibold text-taiko-pink uppercase tracking-wider">Solidity Source Files</p>
+        <p className="text-xs font-semibold text-taiko-pink uppercase tracking-wider mb-3">Solidity Source Files</p>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+            <span>{totalFetched} fetched from remote</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+            </svg>
+            <span>{totalCached} loaded from cache</span>
+          </div>
+        </div>
       </div>
       <div className="max-h-[calc(100vh-400px)] overflow-y-auto space-y-1 px-2 pb-2">
         {files.map((file) => {
