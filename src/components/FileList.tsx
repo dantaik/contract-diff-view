@@ -17,7 +17,7 @@ export default function FileList({ files, selectedFile, onSelectFile, showOnlyCh
             <svg className="w-4 h-4 text-taiko-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
             </svg>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Files</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Solidity Source Files</p>
           </div>
         </div>
         <p className="text-xs text-gray-500">{files.length} total</p>
