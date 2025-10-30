@@ -71,11 +71,6 @@ export default function ConstructorDisplay({
     <div>
       <p className="text-xs text-gray-500 mb-1">
         Constructor Arguments
-        {showChangeBadge && hasChanged && (
-          <span className="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">
-            Changed
-          </span>
-        )}
       </p>
       {ctorInfo.decodedParams && ctorInfo.decodedParams.length > 0
         ? renderDecodedParams(ctorInfo.decodedParams)
