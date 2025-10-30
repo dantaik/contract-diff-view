@@ -362,6 +362,7 @@ export interface ProxyInfo {
   isProxy: boolean;
   implementation?: string;
   proxyAddress?: string;
+  proxyContractName?: string;
 }
 
 export async function checkIfProxy(address: string): Promise<ProxyInfo> {
@@ -381,7 +382,8 @@ export async function checkIfProxy(address: string): Promise<ProxyInfo> {
       return {
         isProxy: true,
         implementation: contractData.Implementation,
-        proxyAddress: address
+        proxyAddress: address,
+        proxyContractName: contractData.ContractName || 'Unknown'
       };
     }
 

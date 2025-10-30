@@ -20,6 +20,10 @@ export default function ProxyInfoDisplay({ proxyInfo }: ProxyInfoDisplayProps) {
       <div className="p-6">
         <div className="space-y-3">
           <div>
+            <p className="text-xs text-gray-500 mb-1">Proxy Contract Name</p>
+            <p className="text-sm font-bold text-gray-900">{proxyInfo.proxyContractName || 'Unknown'}</p>
+          </div>
+          <div>
             <p className="text-xs text-gray-500 mb-1">Proxy Address</p>
             <p className="font-mono text-xs text-gray-900 break-all bg-purple-50 px-3 py-2 rounded-lg">
               {proxyInfo.proxyAddress}
