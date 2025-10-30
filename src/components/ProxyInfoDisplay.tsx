@@ -25,19 +25,14 @@ export default function ProxyInfoDisplay({ proxyInfo }: ProxyInfoDisplayProps) {
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1">Proxy Address</p>
-            <p className="font-mono text-xs text-gray-900 break-all bg-purple-50 px-3 py-2 rounded-lg">
+            <p className="font-mono text-xs text-gray-900 break-all">
               {proxyInfo.proxyAddress}
             </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1">Current Implementation</p>
-            <p className="font-mono text-xs text-gray-900 break-all bg-blue-50 px-3 py-2 rounded-lg">
+            <p className="font-mono text-xs text-gray-900 break-all">
               {proxyInfo.implementation}
-            </p>
-          </div>
-          <div className="mt-4 p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-            <p className="text-xs text-blue-800">
-              This is an upgradeable proxy contract. The comparison below shows the difference between the current implementation and the new implementation.
             </p>
           </div>
         </div>
