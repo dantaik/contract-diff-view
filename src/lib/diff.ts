@@ -20,8 +20,8 @@ export function generateUnifiedDiff(
     fileName,
     oldContent,
     newContent,
-    'Old Implementation',
-    'New Implementation'
+    '',
+    ''
   );
   return patch;
 }
