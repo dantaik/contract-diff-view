@@ -1,3 +1,18 @@
+// Theme Configuration
+export const THEME = {
+  COLORS: {
+    TAIKO_PINK: '#E81899',
+    DIFF_ADDITION: '#ddffdd',
+    DIFF_DELETION: '#ffdddd',
+  },
+  PANEL_TITLE: {
+    fontSize: 'text-xs',
+    fontWeight: 'font-semibold',
+    textTransform: 'uppercase',
+    letterSpacing: 'tracking-wider',
+  },
+} as const;
+
 // API Configuration
 export const ETHERSCAN_API_URL = 'https://api.etherscan.io/v2/api';
 export const DEFAULT_CHAIN_ID = '1'; // Ethereum mainnet
@@ -33,3 +48,14 @@ export const FILE_CHANGE_ICONS = {
   ADDED: 'plus',
   DELETED: 'minus',
 } as const;
+
+// Explorer URLs
+export function getExplorerUrl(chainId: string, address: string): string | null {
+  const explorers: Record<string, string> = {
+    '1': 'https://etherscan.io',
+    '167000': 'https://taikoscan.io',
+  };
+
+  const baseUrl = explorers[chainId];
+  return baseUrl ? `${baseUrl}/address/${address}` : null;
+}

@@ -1,6 +1,8 @@
 import type { ContractSource } from '../lib/etherscan';
 import type { ConstructorInfo } from '../types';
 import ConstructorDisplay from './ConstructorDisplay';
+import AddressDisplay from './AddressDisplay';
+import PanelTitle from './PanelTitle';
 
 interface ImplementationInfoProps {
   source: ContractSource;
@@ -8,6 +10,7 @@ interface ImplementationInfoProps {
   constructor: ConstructorInfo | null;
   comparisonConstructor?: ConstructorInfo | null;
   variant: 'old' | 'new';
+  chainId: string;
 }
 
 export default function ImplementationInfo({
@@ -15,15 +18,16 @@ export default function ImplementationInfo({
   address,
   constructor: ctorInfo,
   comparisonConstructor,
-  variant
+  variant,
+  chainId
 }: ImplementationInfoProps) {
-  const addressBgColor = variant === 'old' ? 'bg-red-50' : 'bg-green-50';
+  const addressBgColor = variant === 'old' ? 'bg-diff-deletion' : 'bg-diff-addition';
   const title = variant === 'old' ? 'Old Implementation' : 'New Implementation';
 
   return (
     <div className="p-6">
       <div className="mb-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</p>
+        <PanelTitle>{title}</PanelTitle>
       </div>
       <div className="space-y-3">
         <div>
@@ -32,9 +36,9 @@ export default function ImplementationInfo({
         </div>
         <div>
           <p className="text-xs text-gray-500 mb-1">Address</p>
-          <p className={`font-mono text-xs text-gray-900 break-all ${addressBgColor} px-3 py-2 rounded-lg`}>
-            {address}
-          </p>
+          <div className={`${addressBgColor} px-3 py-2 rounded-lg`}>
+            <AddressDisplay address={address} chainId={chainId} />
+          </div>
         </div>
         <div>
           <p className="text-xs text-gray-500 mb-1">Compiler</p>
@@ -45,7 +49,7 @@ export default function ImplementationInfo({
             constructor={ctorInfo}
             comparisonConstructor={comparisonConstructor}
             variant={variant}
-            showChangeBadge={variant === 'new'}
+            chainId={chainId}
           />
         )}
       </div>

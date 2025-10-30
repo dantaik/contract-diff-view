@@ -1,28 +1,33 @@
 import type { FileDiff } from '../lib/diff';
+import PanelTitle from './PanelTitle';
 
 interface FileListProps {
   files: FileDiff[];
   selectedFile: string | null;
   onSelectFile: (fileName: string) => void;
-  showOnlyChanged: boolean;
-  onToggleFilter: () => void;
+  totalFetched: number;
+  totalCached: number;
 }
 
-export default function FileList({ files, selectedFile, onSelectFile, showOnlyChanged, onToggleFilter }: FileListProps) {
+export default function FileList({ files, selectedFile, onSelectFile, totalFetched, totalCached }: FileListProps) {
   return (
     <div className="glass-card rounded-xl border-0 overflow-hidden sticky top-32">
-      <div className="px-5 py-4 border-b border-gray-200/50">
-        <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Files</h2>
-        <p className="text-xs text-gray-500 mt-1">{files.length} total</p>
-        <label className="flex items-center gap-2 mt-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={showOnlyChanged}
-            onChange={onToggleFilter}
-            className="w-4 h-4 rounded border-gray-300 text-taiko-pink focus:ring-taiko-pink focus:ring-offset-0 cursor-pointer"
-          />
-          <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors">Show only changed files</span>
-        </label>
+      <div className="px-6 py-6 border-b border-gray-200/50">
+        <PanelTitle className="mb-3">Solidity Source Files</PanelTitle>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+            <span>{totalFetched} fetched from remote</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+            </svg>
+            <span>{totalCached} loaded from cache</span>
+          </div>
+        </div>
       </div>
       <div className="max-h-[calc(100vh-400px)] overflow-y-auto space-y-1 px-2 pb-2">
         {files.map((file) => {
@@ -35,17 +40,16 @@ export default function FileList({ files, selectedFile, onSelectFile, showOnlyCh
             <button
               key={file.fileName}
               onClick={() => onSelectFile(file.fileName)}
-              className={`w-full px-4 py-3 text-left hover:bg-taiko-pink/5 transition-colors duration-150 rounded-lg ${
-                isSelected ? 'bg-taiko-pink/10' : ''
-              }`}
+              className="w-full px-4 py-3 text-left hover:bg-taiko-pink/5 transition-colors duration-150 rounded-lg"
+              style={isSelected ? { backgroundColor: '#f9fafb' } : {}}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-mono text-gray-900 truncate block">
+                  <span className="text-sm text-gray-900 truncate block">
                     {file.fileName.split('/').pop()}
                   </span>
                   {file.fileName.includes('/') && (
-                    <div className="text-xs text-gray-500 mt-0.5 truncate opacity-60">
+                    <div className="text-xs text-gray-600 mt-0.5 truncate">
                       {file.fileName.substring(0, file.fileName.lastIndexOf('/'))}
                     </div>
                   )}

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { getContractSource, getProxyImplementation, setChainId, setApiKey, type ContractSource } from './lib/etherscan';
+import { getContractSource, checkIfProxy, setChainId, setApiKey, type ContractSource, type ProxyInfo } from './lib/etherscan';
 import { createFileDiffs, type FileDiff } from './lib/diff';
 import { decodeConstructorArguments } from './lib/decoder';
 import DiffViewer from './components/DiffViewer';
 import InputForm from './components/InputForm';
 import FileList from './components/FileList';
 import ImplementationInfo from './components/ImplementationInfo';
+import ProxyInfoDisplay from './components/ProxyInfoDisplay';
 import type { URLParams, ConstructorInfo } from './types';
 
 function App() {
@@ -24,7 +25,7 @@ function App() {
   const [newConstructor, setNewConstructor] = useState<ConstructorInfo | null>(null);
   const [fileDiffs, setFileDiffs] = useState<FileDiff[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [showOnlyChanged, setShowOnlyChanged] = useState(false);
+  const [proxyInfo, setProxyInfo] = useState<ProxyInfo | null>(null);
 
   // Load API key from localStorage on mount
   useEffect(() => {
@@ -50,12 +51,6 @@ function App() {
       setChainId(urlParams.chainid);
     }
 
-    // Set showOnlyChanged from URL
-    const filterParam = params.get('filter');
-    if (filterParam === 'changed') {
-      setShowOnlyChanged(true);
-    }
-
     if (urlParams.addr) {
       setProxyAddress(urlParams.addr);
     }
@@ -79,6 +74,7 @@ function App() {
     setError(null);
     setErrorDetails(null);
     setShowErrorDetails(false);
+    setProxyInfo(null);
   };
 
   // Handler for chain ID change
@@ -113,11 +109,11 @@ function App() {
   };
 
   const handleCompare = async (proxy?: string, newImpl?: string) => {
-    const proxyAddr = proxy || proxyAddress;
+    const addrParam = proxy || proxyAddress;
     const newImplAddr = newImpl || newImplAddress;
 
-    if (!proxyAddr || !newImplAddr) {
-      setError('Please provide both proxy address and new implementation address');
+    if (!addrParam || !newImplAddr) {
+      setError('Please provide both addresses');
       return;
     }
 
@@ -131,25 +127,32 @@ function App() {
     setNewConstructor(null);
     setFileDiffs([]);
     setSelectedFile(null);
+    setProxyInfo(null);
 
     try {
-      // Get current implementation from proxy
-      let currentImpl;
+      // Check if the address is a proxy
+      let proxyInfoData: ProxyInfo;
       try {
-        currentImpl = await getProxyImplementation(proxyAddr);
+        proxyInfoData = await checkIfProxy(addrParam);
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error';
         const errorStack = err instanceof Error ? err.stack : undefined;
-        setError(`Failed to fetch proxy information: ${errorMsg}`);
-        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nProxy Address: ${proxyAddr}\nChain ID: ${chainIdState}`);
+        setError(`Failed to fetch address information: ${errorMsg}`);
+        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${addrParam}\nChain ID: ${chainIdState}`);
         setLoading(false);
         return;
       }
 
-      if (!currentImpl) {
-        setError(`Could not fetch current implementation from proxy (${proxyAddr}). Make sure the address is a valid proxy contract.`);
-        setLoading(false);
-        return;
+      let currentImpl: string;
+
+      if (proxyInfoData.isProxy && proxyInfoData.implementation) {
+        // Address is a proxy - get the implementation
+        setProxyInfo(proxyInfoData);
+        currentImpl = proxyInfoData.implementation;
+      } else {
+        // Address is not a proxy - treat it as the old implementation directly
+        setProxyInfo(null);
+        currentImpl = addrParam;
       }
 
       setOldImplAddress(currentImpl);
@@ -229,7 +232,7 @@ function App() {
 
       // Update URL
       const url = new URL(window.location.href);
-      url.searchParams.set('addr', proxyAddr);
+      url.searchParams.set('addr', addrParam);
       url.searchParams.set('newimpl', newImplAddr);
       url.searchParams.set('chainid', chainIdState);
       window.history.pushState({}, '', url.toString());
@@ -238,36 +241,20 @@ function App() {
       const errorMsg = err instanceof Error ? err.message : 'An error occurred';
       const errorStack = err instanceof Error ? err.stack : undefined;
       setError(errorMsg);
-      setErrorDetails(errorStack || `Error: ${errorMsg}\n\nProxy: ${proxyAddr}\nNew Implementation: ${newImplAddr}\nChain ID: ${chainIdState}`);
+      setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${addrParam}\nNew Implementation: ${newImplAddr}\nChain ID: ${chainIdState}`);
     } finally {
       setLoading(false);
     }
   };
 
   const selectedDiff = fileDiffs.find(d => d.fileName === selectedFile);
-  const changedFilesCount = fileDiffs.filter(d => d.hasDiff).length;
 
   // Calculate combined cache statistics
   const totalCached = (oldSource?.cacheStats?.cached || 0) + (newSource?.cacheStats?.cached || 0);
   const totalFetched = (oldSource?.cacheStats?.fetched || 0) + (newSource?.cacheStats?.fetched || 0);
 
-  // Filter files based on showOnlyChanged
-  const displayedFiles = showOnlyChanged ? fileDiffs.filter(d => d.hasDiff) : fileDiffs;
-
-  // Toggle function for changed files filter
-  const toggleChangedFilesFilter = () => {
-    const newValue = !showOnlyChanged;
-    setShowOnlyChanged(newValue);
-
-    // Update URL
-    const url = new URL(window.location.href);
-    if (newValue) {
-      url.searchParams.set('filter', 'changed');
-    } else {
-      url.searchParams.delete('filter');
-    }
-    window.history.pushState({}, '', url.toString());
-  };
+  // Always filter to show only changed files
+  const displayedFiles = fileDiffs.filter(d => d.hasDiff);
 
   return (
     <div className="min-h-screen">
@@ -356,6 +343,9 @@ function App() {
 
         {!loading && oldSource && newSource && (
           <div className="mt-8 space-y-6">
+            {proxyInfo && proxyInfo.isProxy && (
+              <ProxyInfoDisplay proxyInfo={proxyInfo} chainId={chainIdState} />
+            )}
             <div className="glass-card rounded-xl border-0 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200/50">
                 <ImplementationInfo
@@ -364,6 +354,7 @@ function App() {
                   constructor={oldConstructor}
                   comparisonConstructor={newConstructor}
                   variant="old"
+                  chainId={chainIdState}
                 />
                 <ImplementationInfo
                   source={newSource}
@@ -371,37 +362,9 @@ function App() {
                   constructor={newConstructor}
                   comparisonConstructor={oldConstructor}
                   variant="new"
+                  chainId={chainIdState}
                 />
               </div>
-
-              {/* Statistics Bar */}
-              {changedFilesCount > 0 && (
-                <div className="px-6 py-4 bg-gradient-to-r from-gray-50/50 to-pink-50/30 border-t border-gray-200/50">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-lg text-sm font-medium border border-gray-200/50">
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-gray-900 font-semibold">{changedFilesCount}</span>
-                      <span className="text-gray-600">file{changedFilesCount !== 1 ? 's' : ''} changed</span>
-                    </div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-lg text-sm font-medium border border-gray-200/50">
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                      </svg>
-                      <span className="text-gray-900 font-semibold">{totalFetched}</span>
-                      <span className="text-gray-600">fetched from remote</span>
-                    </div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-lg text-sm font-medium border border-gray-200/50">
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-                      </svg>
-                      <span className="text-gray-900 font-semibold">{totalCached}</span>
-                      <span className="text-gray-600">loaded from cache</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="grid grid-cols-12 gap-6">
@@ -410,8 +373,8 @@ function App() {
                   files={displayedFiles}
                   selectedFile={selectedFile}
                   onSelectFile={setSelectedFile}
-                  showOnlyChanged={showOnlyChanged}
-                  onToggleFilter={toggleChangedFilesFilter}
+                  totalFetched={totalFetched}
+                  totalCached={totalCached}
                 />
               </div>
               <div className="col-span-12 lg:col-span-9">

@@ -1,22 +1,27 @@
 import type { ConstructorInfo, DecodedParam } from '../types';
+import AddressDisplay from './AddressDisplay';
 
 interface ConstructorDisplayProps {
   constructor: ConstructorInfo | null;
   comparisonConstructor?: ConstructorInfo | null;
   variant: 'old' | 'new';
-  showChangeBadge?: boolean;
+  chainId: string;
 }
 
 export default function ConstructorDisplay({
   constructor: ctorInfo,
   comparisonConstructor,
   variant,
-  showChangeBadge = false
+  chainId
 }: ConstructorDisplayProps) {
   if (!ctorInfo) return null;
 
-  const hasChanged = comparisonConstructor && ctorInfo.arguments !== comparisonConstructor.arguments;
-  const highlightColor = variant === 'old' ? 'bg-red-50' : 'bg-green-50';
+  const highlightColor = variant === 'old' ? 'bg-diff-deletion' : 'bg-diff-addition';
+
+  // Helper to check if a value looks like an Ethereum address
+  const isAddress = (value: string, type: string): boolean => {
+    return type === 'address' || (type.includes('address') && /^0x[a-fA-F0-9]{40}$/.test(value));
+  };
 
   const renderDecodedParams = (params: DecodedParam[]) => {
     return (
@@ -35,8 +40,14 @@ export default function ConstructorDisplay({
                 <span className="text-xs font-semibold text-blue-600 min-w-fit">{param.name}:</span>
                 <span className="text-xs text-gray-500">({param.type})</span>
               </div>
-              <div className="mt-1 font-mono text-xs text-gray-900 break-all">
-                {param.value}
+              <div className="mt-1">
+                {isAddress(param.value, param.type) ? (
+                  <AddressDisplay address={param.value} chainId={chainId} className="text-xs" />
+                ) : (
+                  <div className="font-mono text-xs text-gray-900 break-all">
+                    {param.value}
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -57,11 +68,6 @@ export default function ConstructorDisplay({
     <div>
       <p className="text-xs text-gray-500 mb-1">
         Constructor Arguments
-        {showChangeBadge && hasChanged && (
-          <span className="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">
-            Changed
-          </span>
-        )}
       </p>
       {ctorInfo.decodedParams && ctorInfo.decodedParams.length > 0
         ? renderDecodedParams(ctorInfo.decodedParams)
