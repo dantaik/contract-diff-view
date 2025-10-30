@@ -248,11 +248,6 @@ function App() {
   };
 
   const selectedDiff = fileDiffs.find(d => d.fileName === selectedFile);
-  const changedFilesCount = fileDiffs.filter(d => d.hasDiff).length;
-
-  // Calculate combined cache statistics
-  const totalCached = (oldSource?.cacheStats?.cached || 0) + (newSource?.cacheStats?.cached || 0);
-  const totalFetched = (oldSource?.cacheStats?.fetched || 0) + (newSource?.cacheStats?.fetched || 0);
 
   // Always filter to show only changed files
   const displayedFiles = fileDiffs.filter(d => d.hasDiff);
@@ -366,35 +361,6 @@ function App() {
                   chainId={chainIdState}
                 />
               </div>
-
-              {/* Statistics Bar */}
-              {changedFilesCount > 0 && (
-                <div className="px-6 py-4 bg-gradient-to-r from-gray-50/50 to-pink-50/30 border-t border-gray-200/50">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-lg text-sm font-medium border border-gray-200/50">
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-gray-900 font-semibold">{changedFilesCount}</span>
-                      <span className="text-gray-600">file{changedFilesCount !== 1 ? 's' : ''} changed</span>
-                    </div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-lg text-sm font-medium border border-gray-200/50">
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                      </svg>
-                      <span className="text-gray-900 font-semibold">{totalFetched}</span>
-                      <span className="text-gray-600">fetched from remote</span>
-                    </div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-lg text-sm font-medium border border-gray-200/50">
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-                      </svg>
-                      <span className="text-gray-900 font-semibold">{totalCached}</span>
-                      <span className="text-gray-600">loaded from cache</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="grid grid-cols-12 gap-6">
