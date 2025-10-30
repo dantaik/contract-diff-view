@@ -367,7 +367,7 @@ function App() {
         {!loading && oldSource && newSource && (
           <div className="mt-8 space-y-6">
             {proxyInfo && proxyInfo.isProxy && (
-              <ProxyInfoDisplay proxyInfo={proxyInfo} />
+              <ProxyInfoDisplay proxyInfo={proxyInfo} chainId={chainIdState} />
             )}
             <div className="glass-card rounded-xl border-0 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200/50">
@@ -377,6 +377,7 @@ function App() {
                   constructor={oldConstructor}
                   comparisonConstructor={newConstructor}
                   variant="old"
+                  chainId={chainIdState}
                 />
                 <ImplementationInfo
                   source={newSource}
@@ -384,6 +385,7 @@ function App() {
                   constructor={newConstructor}
                   comparisonConstructor={oldConstructor}
                   variant="new"
+                  chainId={chainIdState}
                 />
               </div>
 

@@ -33,3 +33,14 @@ export const FILE_CHANGE_ICONS = {
   ADDED: 'plus',
   DELETED: 'minus',
 } as const;
+
+// Explorer URLs
+export function getExplorerUrl(chainId: string, address: string): string | null {
+  const explorers: Record<string, string> = {
+    '1': 'https://etherscan.io',
+    '167000': 'https://taikoscan.io',
+  };
+
+  const baseUrl = explorers[chainId];
+  return baseUrl ? `${baseUrl}/address/${address}` : null;
+}
