@@ -1,3 +1,18 @@
+// Theme Configuration
+export const THEME = {
+  COLORS: {
+    TAIKO_PINK: '#E81899',
+    DIFF_ADDITION: '#ddffdd',
+    DIFF_DELETION: '#ffdddd',
+  },
+  PANEL_TITLE: {
+    fontSize: 'text-xs',
+    fontWeight: 'font-semibold',
+    textTransform: 'uppercase',
+    letterSpacing: 'tracking-wider',
+  },
+} as const;
+
 // API Configuration
 export const ETHERSCAN_API_URL = 'https://api.etherscan.io/v2/api';
 export const DEFAULT_CHAIN_ID = '1'; // Ethereum mainnet

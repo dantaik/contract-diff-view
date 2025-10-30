@@ -1,5 +1,6 @@
 import type { ProxyInfo } from '../lib/etherscan';
 import AddressDisplay from './AddressDisplay';
+import PanelTitle from './PanelTitle';
 
 interface ProxyInfoDisplayProps {
   proxyInfo: ProxyInfo;
@@ -13,7 +14,7 @@ export default function ProxyInfoDisplay({ proxyInfo, chainId }: ProxyInfoDispla
     <div className="glass-card rounded-xl border-0 overflow-hidden mb-6">
       <div className="p-6">
         <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#E81899' }}>Proxy Contract</p>
+          <PanelTitle>Proxy Contract</PanelTitle>
         </div>
         <div className="space-y-3">
           <div>

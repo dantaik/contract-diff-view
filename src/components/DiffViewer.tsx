@@ -1,4 +1,5 @@
 import type { FileDiff } from '../lib/diff';
+import PanelTitle from './PanelTitle';
 
 interface DiffViewerProps {
   diff: FileDiff;
@@ -20,9 +21,9 @@ export default function DiffViewer({ diff }: DiffViewerProps) {
   return (
     <div className="glass-card rounded-xl border-0 overflow-hidden">
       <div className="px-6 py-6 border-b border-gray-200/50">
-        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#E81899' }}>
+        <PanelTitle>
           Code Comparison - <span className="font-mono normal-case">{diff.fileName}</span>
-        </p>
+        </PanelTitle>
       </div>
       <div className="overflow-x-auto bg-white">
         {/* Side-by-side diff on desktop, unified on mobile */}

@@ -1,4 +1,5 @@
 import type { FileDiff } from '../lib/diff';
+import PanelTitle from './PanelTitle';
 
 interface FileListProps {
   files: FileDiff[];
@@ -12,7 +13,7 @@ export default function FileList({ files, selectedFile, onSelectFile, totalFetch
   return (
     <div className="glass-card rounded-xl border-0 overflow-hidden sticky top-32">
       <div className="px-6 py-6 border-b border-gray-200/50">
-        <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#E81899' }}>Solidity Source Files</p>
+        <PanelTitle className="mb-3">Solidity Source Files</PanelTitle>
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,17 +40,16 @@ export default function FileList({ files, selectedFile, onSelectFile, totalFetch
             <button
               key={file.fileName}
               onClick={() => onSelectFile(file.fileName)}
-              className={`w-full px-4 py-3 text-left hover:bg-taiko-pink/5 transition-colors duration-150 rounded-lg ${
-                isSelected ? 'bg-taiko-pink/10' : ''
-              }`}
+              className="w-full px-4 py-3 text-left hover:bg-taiko-pink/5 transition-colors duration-150 rounded-lg"
+              style={isSelected ? { backgroundColor: '#f9fafb' } : {}}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-mono text-gray-900 truncate block">
+                  <span className="text-sm text-gray-900 truncate block">
                     {file.fileName.split('/').pop()}
                   </span>
                   {file.fileName.includes('/') && (
-                    <div className="text-xs text-gray-500 mt-0.5 truncate opacity-60">
+                    <div className="text-xs text-gray-600 mt-0.5 truncate">
                       {file.fileName.substring(0, file.fileName.lastIndexOf('/'))}
                     </div>
                   )}

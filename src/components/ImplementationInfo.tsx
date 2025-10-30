@@ -2,6 +2,7 @@ import type { ContractSource } from '../lib/etherscan';
 import type { ConstructorInfo } from '../types';
 import ConstructorDisplay from './ConstructorDisplay';
 import AddressDisplay from './AddressDisplay';
+import PanelTitle from './PanelTitle';
 
 interface ImplementationInfoProps {
   source: ContractSource;
@@ -26,7 +27,7 @@ export default function ImplementationInfo({
   return (
     <div className="p-6">
       <div className="mb-4">
-        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#E81899' }}>{title}</p>
+        <PanelTitle>{title}</PanelTitle>
       </div>
       <div className="space-y-3">
         <div>
