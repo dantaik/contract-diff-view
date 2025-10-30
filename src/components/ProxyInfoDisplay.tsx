@@ -11,7 +11,7 @@ export default function ProxyInfoDisplay({ proxyInfo }: ProxyInfoDisplayProps) {
     <div className="glass-card rounded-xl border-0 overflow-hidden mb-6">
       <div className="p-6">
         <div className="mb-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Proxy Contract</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">🔄 Proxy Contract</p>
         </div>
         <div className="space-y-3">
           <div>

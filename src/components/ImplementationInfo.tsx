@@ -18,7 +18,7 @@ export default function ImplementationInfo({
   variant
 }: ImplementationInfoProps) {
   const addressBgColor = variant === 'old' ? 'bg-red-50' : 'bg-green-50';
-  const title = variant === 'old' ? 'Old Implementation' : 'New Implementation';
+  const title = variant === 'old' ? '📦 Old Implementation' : '✨ New Implementation';
 
   return (
     <div className="p-6">
