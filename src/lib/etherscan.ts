@@ -66,6 +66,7 @@ interface ContractSource {
   contractName: string;
   files: SourceFile[];
   compilerVersion: string;
+  evmVersion: string;
   verified: boolean;
   constructorArguments?: string | null;
   abi?: any[] | null;
@@ -266,6 +267,7 @@ export async function getContractSource(address: string): Promise<ContractSource
         contractName: contractData.ContractName || 'Unknown',
         files: [],
         compilerVersion: '',
+        evmVersion: '',
         verified: false,
         constructorArguments: null,
         abi: null,
@@ -341,6 +343,7 @@ export async function getContractSource(address: string): Promise<ContractSource
       contractName: contractData.ContractName,
       files,
       compilerVersion: contractData.CompilerVersion,
+      evmVersion: contractData.EVMVersion || '',
       verified: true,
       constructorArguments,
       abi,
