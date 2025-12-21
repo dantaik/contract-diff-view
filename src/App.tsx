@@ -46,6 +46,7 @@ function App() {
     };
 
     // Set chain ID if provided in URL
+    const effectiveChainId = urlParams.chainid || '1';
     if (urlParams.chainid) {
       setChainIdState(urlParams.chainid);
       setChainId(urlParams.chainid);
@@ -59,7 +60,7 @@ function App() {
     }
 
     if (urlParams.addr && urlParams.newimpl) {
-      handleCompare(urlParams.addr, urlParams.newimpl);
+      handleCompare(urlParams.addr, urlParams.newimpl, effectiveChainId);
     }
   }, []);
 
@@ -108,9 +109,10 @@ function App() {
     }
   };
 
-  const handleCompare = async (proxy?: string, newImpl?: string) => {
+  const handleCompare = async (proxy?: string, newImpl?: string, overrideChainId?: string) => {
     const addrParam = proxy || proxyAddress;
     const newImplAddr = newImpl || newImplAddress;
+    const effectiveChainId = overrideChainId || chainIdState;
 
     if (!addrParam || !newImplAddr) {
       setError('Please provide both addresses');
@@ -138,7 +140,7 @@ function App() {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error';
         const errorStack = err instanceof Error ? err.stack : undefined;
         setError(`Failed to fetch address information: ${errorMsg}`);
-        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${addrParam}\nChain ID: ${chainIdState}`);
+        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${addrParam}\nChain ID: ${effectiveChainId}`);
         setLoading(false);
         return;
       }
@@ -166,7 +168,7 @@ function App() {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error';
         const errorStack = err instanceof Error ? err.stack : undefined;
         setError(`Failed to fetch old implementation (${currentImpl}): ${errorMsg}`);
-        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${currentImpl}\nChain ID: ${chainIdState}`);
+        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${currentImpl}\nChain ID: ${effectiveChainId}`);
         setLoading(false);
         return;
       }
@@ -177,7 +179,7 @@ function App() {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error';
         const errorStack = err instanceof Error ? err.stack : undefined;
         setError(`Failed to fetch new implementation (${newImplAddr}): ${errorMsg}`);
-        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${newImplAddr}\nChain ID: ${chainIdState}`);
+        setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${newImplAddr}\nChain ID: ${effectiveChainId}`);
         setLoading(false);
         return;
       }
@@ -234,14 +236,14 @@ function App() {
       const url = new URL(window.location.href);
       url.searchParams.set('addr', addrParam);
       url.searchParams.set('newimpl', newImplAddr);
-      url.searchParams.set('chainid', chainIdState);
+      url.searchParams.set('chainid', effectiveChainId);
       window.history.pushState({}, '', url.toString());
 
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'An error occurred';
       const errorStack = err instanceof Error ? err.stack : undefined;
       setError(errorMsg);
-      setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${addrParam}\nNew Implementation: ${newImplAddr}\nChain ID: ${chainIdState}`);
+      setErrorDetails(errorStack || `Error: ${errorMsg}\n\nAddress: ${addrParam}\nNew Implementation: ${newImplAddr}\nChain ID: ${effectiveChainId}`);
     } finally {
       setLoading(false);
     }
