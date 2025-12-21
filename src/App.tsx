@@ -350,6 +350,7 @@ function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200/50">
                 <ImplementationInfo
                   source={oldSource}
+                  comparisonSource={newSource}
                   address={oldImplAddress}
                   constructor={oldConstructor}
                   comparisonConstructor={newConstructor}
@@ -358,6 +359,7 @@ function App() {
                 />
                 <ImplementationInfo
                   source={newSource}
+                  comparisonSource={oldSource}
                   address={newImplAddress}
                   constructor={newConstructor}
                   comparisonConstructor={oldConstructor}
