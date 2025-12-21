@@ -281,6 +281,7 @@ export async function getContractSource(address: string): Promise<ContractSource
     }
 
     let files: SourceFile[] = [];
+    let evmVersionFromSettings = '';
 
     // Handle multi-file contracts (JSON format)
     if (contractData.SourceCode.startsWith('{{')) {
@@ -293,6 +294,10 @@ export async function getContractSource(address: string): Promise<ContractSource
           content: data.content
         }));
       }
+      // Extract EVM version from settings if available
+      if (parsed.settings?.evmVersion) {
+        evmVersionFromSettings = parsed.settings.evmVersion;
+      }
     } else if (contractData.SourceCode.startsWith('{')) {
       // Single file in JSON format
       try {
@@ -302,6 +307,10 @@ export async function getContractSource(address: string): Promise<ContractSource
             name,
             content: data.content
           }));
+          // Extract EVM version from settings if available
+          if (parsed.settings?.evmVersion) {
+            evmVersionFromSettings = parsed.settings.evmVersion;
+          }
         } else {
           // Fallback to treating as single file
           files = [{
@@ -343,7 +352,7 @@ export async function getContractSource(address: string): Promise<ContractSource
       contractName: contractData.ContractName,
       files,
       compilerVersion: contractData.CompilerVersion,
-      evmVersion: contractData.EVMVersion || '',
+      evmVersion: contractData.EVMVersion || evmVersionFromSettings || '',
       verified: true,
       constructorArguments,
       abi,
