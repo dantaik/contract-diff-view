@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getContractSource, checkIfProxy, setChainId, setApiKey, type ContractSource, type ProxyInfo } from './lib/etherscan';
+import { getContractSource, getContractDeployment, checkIfProxy, setChainId, setApiKey, type ContractSource, type DeploymentInfo, type ProxyInfo } from './lib/etherscan';
 import { createFileDiffs, type FileDiff } from './lib/diff';
 import { decodeConstructorArguments } from './lib/decoder';
 import DiffViewer from './components/DiffViewer';
@@ -23,6 +23,9 @@ function App() {
   const [newSource, setNewSource] = useState<ContractSource | null>(null);
   const [oldConstructor, setOldConstructor] = useState<ConstructorInfo | null>(null);
   const [newConstructor, setNewConstructor] = useState<ConstructorInfo | null>(null);
+  const [oldDeployment, setOldDeployment] = useState<DeploymentInfo | null>(null);
+  const [newDeployment, setNewDeployment] = useState<DeploymentInfo | null>(null);
+  const [deploymentsLoading, setDeploymentsLoading] = useState(false);
   const [fileDiffs, setFileDiffs] = useState<FileDiff[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [proxyInfo, setProxyInfo] = useState<ProxyInfo | null>(null);
@@ -70,6 +73,9 @@ function App() {
     setNewSource(null);
     setOldConstructor(null);
     setNewConstructor(null);
+    setOldDeployment(null);
+    setNewDeployment(null);
+    setDeploymentsLoading(false);
     setFileDiffs([]);
     setSelectedFile(null);
     setError(null);
@@ -109,6 +115,24 @@ function App() {
     }
   };
 
+  // Fetch deployment info for both implementations without blocking the diff
+  const loadDeployments = async (oldAddr: string, newAddr: string) => {
+    setDeploymentsLoading(true);
+    try {
+      // Sequential to stay within the Etherscan rate limit
+      const oldDeploymentData = await getContractDeployment(oldAddr);
+      setOldDeployment(oldDeploymentData);
+
+      const newDeploymentData = await getContractDeployment(newAddr);
+      setNewDeployment(newDeploymentData);
+    } catch (err) {
+      // Deployment info is optional - log and leave the row hidden
+      console.warn('Failed to fetch deployment info:', err);
+    } finally {
+      setDeploymentsLoading(false);
+    }
+  };
+
   const handleCompare = async (proxy?: string, newImpl?: string, overrideChainId?: string) => {
     const addrParam = proxy || proxyAddress;
     const newImplAddr = newImpl || newImplAddress;
@@ -127,6 +151,9 @@ function App() {
     setNewSource(null);
     setOldConstructor(null);
     setNewConstructor(null);
+    setOldDeployment(null);
+    setNewDeployment(null);
+    setDeploymentsLoading(false);
     setFileDiffs([]);
     setSelectedFile(null);
     setProxyInfo(null);
@@ -219,6 +246,10 @@ function App() {
         arguments: newSourceData.constructorArguments ?? null,
         decodedParams: newDecodedParams
       });
+
+      // Fetch deployment timestamps in the background - they are informational,
+      // so the diff should not wait on them
+      loadDeployments(currentImpl, newImplAddr);
 
       // Generate diffs
       const diffs = createFileDiffs(oldSourceData.files, newSourceData.files);
@@ -356,6 +387,8 @@ function App() {
                   address={oldImplAddress}
                   constructor={oldConstructor}
                   comparisonConstructor={newConstructor}
+                  deployment={oldDeployment}
+                  deploymentLoading={deploymentsLoading && !oldDeployment}
                   variant="old"
                   chainId={chainIdState}
                 />
@@ -365,6 +398,8 @@ function App() {
                   address={newImplAddress}
                   constructor={newConstructor}
                   comparisonConstructor={oldConstructor}
+                  deployment={newDeployment}
+                  deploymentLoading={deploymentsLoading && !newDeployment}
                   variant="new"
                   chainId={chainIdState}
                 />

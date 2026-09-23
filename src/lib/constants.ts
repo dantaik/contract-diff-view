@@ -50,12 +50,17 @@ export const FILE_CHANGE_ICONS = {
 } as const;
 
 // Explorer URLs
-export function getExplorerUrl(chainId: string, address: string): string | null {
-  const explorers: Record<string, string> = {
-    '1': 'https://etherscan.io',
-    '167000': 'https://taikoscan.io',
-  };
+const EXPLORER_BASE_URLS: Record<string, string> = {
+  '1': 'https://etherscan.io',
+  '167000': 'https://taikoscan.io',
+};
 
-  const baseUrl = explorers[chainId];
+export function getExplorerUrl(chainId: string, address: string): string | null {
+  const baseUrl = EXPLORER_BASE_URLS[chainId];
   return baseUrl ? `${baseUrl}/address/${address}` : null;
+}
+
+export function getExplorerTxUrl(chainId: string, txHash: string): string | null {
+  const baseUrl = EXPLORER_BASE_URLS[chainId];
+  return baseUrl ? `${baseUrl}/tx/${txHash}` : null;
 }
