@@ -1,7 +1,8 @@
-import type { ContractSource } from '../lib/etherscan';
+import type { ContractSource, DeploymentInfo } from '../lib/etherscan';
 import type { ConstructorInfo } from '../types';
 import ConstructorDisplay from './ConstructorDisplay';
 import AddressDisplay from './AddressDisplay';
+import DeploymentDisplay from './DeploymentDisplay';
 import PanelTitle from './PanelTitle';
 
 interface ImplementationInfoProps {
@@ -10,6 +11,8 @@ interface ImplementationInfoProps {
   address: string;
   constructor: ConstructorInfo | null;
   comparisonConstructor?: ConstructorInfo | null;
+  deployment?: DeploymentInfo | null;
+  deploymentLoading?: boolean;
   variant: 'old' | 'new';
   chainId: string;
 }
@@ -20,6 +23,8 @@ export default function ImplementationInfo({
   address,
   constructor: ctorInfo,
   comparisonConstructor,
+  deployment,
+  deploymentLoading = false,
   variant,
   chainId
 }: ImplementationInfoProps) {
@@ -53,6 +58,11 @@ export default function ImplementationInfo({
             <AddressDisplay address={address} chainId={chainId} />
           </div>
         </div>
+        <DeploymentDisplay
+          deployment={deployment ?? null}
+          chainId={chainId}
+          loading={deploymentLoading}
+        />
         <div>
           <p className="text-xs text-gray-500 mb-1">Compiler</p>
           <p className={`text-xs text-gray-900 font-medium ${compilerDiffers ? `${diffBgColor} px-2 py-1 rounded` : ''}`}>

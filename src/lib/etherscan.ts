@@ -370,6 +370,105 @@ export async function getContractSource(address: string): Promise<ContractSource
   }
 }
 
+export interface DeploymentInfo {
+  txHash: string | null;
+  blockNumber: number | null;
+  /** Unix timestamp in seconds, or null when it could not be determined. */
+  timestamp: number | null;
+  deployer: string | null;
+}
+
+// Suffix used to cache the deployment record separately from the source code
+const DEPLOYMENT_CACHE_KEY = '__deployment__';
+
+// Etherscan returns numbers as decimal or hex strings depending on the endpoint
+function parseNumeric(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+  if (typeof value !== 'string' || value === '') {
+    return null;
+  }
+  const parsed = value.startsWith('0x') || value.startsWith('0X')
+    ? parseInt(value, 16)
+    : parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+async function getBlockTimestamp(blockNumber: number): Promise<number | null> {
+  const tag = `0x${blockNumber.toString(16)}`;
+  const url = `${ETHERSCAN_API_URL}?module=proxy&action=eth_getBlockByNumber&tag=${tag}&boolean=false`;
+
+  const data = await fetchWithRetry(url);
+  return parseNumeric(data?.result?.timestamp);
+}
+
+async function getTransactionBlockNumber(txHash: string): Promise<number | null> {
+  const url = `${ETHERSCAN_API_URL}?module=proxy&action=eth_getTransactionByHash&txhash=${txHash}`;
+
+  const data = await fetchWithRetry(url);
+  return parseNumeric(data?.result?.blockNumber);
+}
+
+/**
+ * Fetch the deployment (contract creation) record for an address.
+ *
+ * Etherscan's getcontractcreation endpoint already returns a timestamp on most
+ * chains; when it does not, we fall back to resolving it from the creation
+ * transaction's block.
+ *
+ * Returns null when the deployment cannot be determined - this is informational
+ * data, so callers should treat a failure as "unknown" rather than fatal.
+ */
+export async function getContractDeployment(address: string): Promise<DeploymentInfo | null> {
+  const cached = cache.get(address, DEPLOYMENT_CACHE_KEY);
+  if (cached) {
+    return cached;
+  }
+
+  const url = `${ETHERSCAN_API_URL}?module=contract&action=getcontractcreation&contractaddresses=${address}`;
+
+  try {
+    const data = await fetchWithRetry(url);
+
+    if (!Array.isArray(data.result) || data.result.length === 0) {
+      return null;
+    }
+
+    const creation = data.result[0];
+    const txHash: string | null = creation.txHash || null;
+    let blockNumber = parseNumeric(creation.blockNumber);
+    let timestamp = parseNumeric(creation.timestamp ?? creation.timeStamp);
+
+    if (timestamp === null) {
+      if (blockNumber === null && txHash) {
+        blockNumber = await getTransactionBlockNumber(txHash);
+      }
+      if (blockNumber !== null) {
+        timestamp = await getBlockTimestamp(blockNumber);
+      }
+    }
+
+    const deployment: DeploymentInfo = {
+      txHash,
+      blockNumber,
+      timestamp,
+      deployer: creation.contractCreator || null
+    };
+
+    // Only cache once the timestamp resolved, so a transient failure to look it
+    // up does not get stored for the whole cache lifetime
+    if (timestamp !== null) {
+      cache.set(address, deployment, DEPLOYMENT_CACHE_KEY);
+    }
+
+    return deployment;
+  } catch (error) {
+    console.error('Error fetching contract deployment:', error);
+    return null;
+  }
+}
+
 export interface ProxyInfo {
   isProxy: boolean;
   implementation?: string;
